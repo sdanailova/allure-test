@@ -26,7 +26,6 @@ def driver():
         service = Service(executable_path=chromedriver_path)
         drv = webdriver.Chrome(service=service, options=options)
     else:
-        # Fallback: Selenium Manager/default PATH resolution
         drv = webdriver.Chrome(options=options)
 
     yield drv
@@ -36,11 +35,13 @@ def driver():
 @allure.title("PASS: Page title should match")
 def test_title_pass(driver):
     driver.get(BASE_URL)
-    assert driver.title == "HelloWorld"
+    # From your logs, actual title is "HelloWorld Demo"
+    assert driver.title == "HelloWorld Demo"
 
 
 @allure.title("FAIL (intentional): Heading text mismatch")
 def test_heading_fail_intentional(driver):
     driver.get(BASE_URL)
     heading = driver.find_element(By.CSS_SELECTOR, '[data-testid="hero-title"]').text
+    # Keep this intentionally wrong to demonstrate failure in Allure
     assert heading == "This will fail on purpose"

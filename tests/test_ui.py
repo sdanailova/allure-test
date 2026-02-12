@@ -1,7 +1,8 @@
 import os
-import allure
 import pytest
+import allure
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:3000")
@@ -19,22 +20,27 @@ def driver():
     chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
 
     if chrome_bin:
-      options.binary_location = chrome_bin
+        options.binary_location = chrome_bin
 
-    service = Service(executable_path=chromedriver_path) if chromedriver_path else Service()
-    drv = webdriver.Chrome(service=service, options=options)
+    if chromedriver_path:
+        service = Service(executable_path=chromedriver_path)
+        drv = webdriver.Chrome(service=service, options=options)
+    else:
+        # Fallback: Selenium Manager/default PATH resolution
+        drv = webdriver.Chrome(options=options)
+
     yield drv
     drv.quit()
 
 
-@allure.title("PASS: title should be HelloWorld Demo")
+@allure.title("PASS: Page title should match")
 def test_title_pass(driver):
     driver.get(BASE_URL)
-    assert driver.title == "HelloWorld Demo"
+    assert driver.title == "HelloWorld"
 
 
-@allure.title("FAIL (intentional): heading text mismatch")
+@allure.title("FAIL (intentional): Heading text mismatch")
 def test_heading_fail_intentional(driver):
     driver.get(BASE_URL)
-    heading = driver.find_element(By.CSS_SELECTOR, "[data-testid='hero-title']").text
-    assert heading == "HelloWorld!!!"  # intentional fail to show red test in Allure
+    heading = driver.find_element(By.CSS_SELECTOR, '[data-testid="hero-title"]').text
+    assert heading == "This will fail on purpose"

@@ -56,18 +56,15 @@ jobs:
             sleep 1
           done
 
-      - name: Run tests (always continue so report is published)
+      - name: Run tests
+        id: ui_tests
         continue-on-error: true
         env:
           BASE_URL: http://127.0.0.1:3000
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
         run: |
-          mkdir -p reports
-          pytest -q tests \
-            --alluredir=allure-results \
-            --clean-alluredir \
-            --junit-xml=reports/junit.xml
+          pytest -q tests --alluredir=allure-results --clean-alluredir --junit-xml=reports/junit.xml
 
       - name: Upload JUnit report artifact
         if: always()

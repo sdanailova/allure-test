@@ -15,9 +15,16 @@ def driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    browser = webdriver.Chrome(options=options)
-    yield browser
-    browser.quit()
+    chrome_bin = os.getenv("CHROME_BIN")
+    chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
+
+    if chrome_bin:
+      options.binary_location = chrome_bin
+
+    service = Service(executable_path=chromedriver_path) if chromedriver_path else Service()
+    drv = webdriver.Chrome(service=service, options=options)
+    yield drv
+    drv.quit()
 
 
 @allure.title("PASS: title should be HelloWorld Demo")

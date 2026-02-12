@@ -63,7 +63,19 @@ jobs:
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
         run: |
-          pytest -q tests --alluredir=allure-results --clean-alluredir
+          mkdir -p reports
+          pytest -q tests \
+            --alluredir=allure-results \
+            --clean-alluredir \
+            --junit-xml=reports/junit.xml
+
+      - name: Upload JUnit report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-xml
+          path: reports/junit.xml
+          if-no-files-found: error
 
       - name: Load previous Allure history
         if: always()
@@ -89,3 +101,30 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+      
+      - name: Print Allure URL in logs + workflow summary
+        if: always()
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+
+          # user/organization site repo special case: owner.github.io
+          if [ "$REPO" = "${OWNER}.github.io" ]; then
+            URL="https://${OWNER}.github.io/"
+          else
+            URL="https://${OWNER}.github.io/${REPO}/"
+          fi
+
+          echo "Allure report URL: $URL"
+
+          echo "## Test reports" >> $GITHUB_STEP_SUMMARY
+          echo "- Allure report: [$URL]($URL)" >> $GITHUB_STEP_SUMMARY
+          echo "- JUnit XML artifact: **junit-xml** (download from Artifacts section)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Keep pipeline red if tests failed
+        if: always()
+        run: |
+          if [ "${{ steps.ui_tests.outcome }}" != "success" ]; then
+            echo "Some tests failed."
+            exit 1
+          fi

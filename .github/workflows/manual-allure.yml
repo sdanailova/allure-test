@@ -1,0 +1,84 @@
+name: Next.js UI tests + Allure report (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-publish-allure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build static Next.js site
+        run: npm run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up Chrome + Chromedriver
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+
+      - name: Serve static site on port 3000
+        run: |
+          npx serve@14 -s out -l 3000 &
+          for i in {1..30}; do
+            if curl -sSf http://127.0.0.1:3000 >/dev/null; then
+              echo "Static server is up"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Selenium tests and collect allure-results
+        run: pytest -q tests --alluredir=allure-results --clean-alluredir
+        env:
+          BASE_URL: http://127.0.0.1:3000
+
+      - name: Checkout gh-pages branch (for history)
+        if: always()
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build Allure report (with history)
+        if: always()
+        uses: simple-elf/allure-report-action@v1.13
+        with:
+          gh_pages: gh-pages
+          allure_results: allure-results
+          allure_report: allure-report
+          allure_history: allure-history
+
+      - name: Publish Allure report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history

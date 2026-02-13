@@ -1,0 +1,3 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","108","FAIL (intentional): Heading text mismatch","tests","Fri Feb 13 08:16:58 UTC 2026","failed","Fri Feb 13 08:16:58 UTC 2026","","test_ui","",""
+"","95","PASS: Page title should match","tests","Fri Feb 13 08:16:58 UTC 2026","passed","Fri Feb 13 08:16:58 UTC 2026","","test_ui","",""

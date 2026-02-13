@@ -1,0 +1,1 @@
+[{"uid":"68f4bf4754e046bd","name":"FAIL (intentional): Heading text mismatch","time":{"start":1770970618698,"stop":1770970618806,"duration":108},"status":"failed","severity":"normal"},{"uid":"158820b89e8a87ab","name":"PASS: Page title should match","time":{"start":1770970618231,"stop":1770970618326,"duration":95},"status":"passed","severity":"normal"}]
